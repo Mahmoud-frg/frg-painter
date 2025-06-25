@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test OpenCV</title>
+</head>
+<body>
+  <h1>Testing OpenCV...</h1>
+  <script src="libs/opencv.js"></script>
+  <script>
+    cv['onRuntimeInitialized'] = () => {
+      document.body.insertAdjacentHTML('beforeend', '<p>✅ OpenCV is loaded!</p>');
+    };
+  </script>
+</body>
+</html>
