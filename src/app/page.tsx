@@ -36,6 +36,11 @@ const initialShoeImages: ShoeImage[] = [
     uncolored: '/images/uncolored/shoe5.jpg',
     colored: '/images/colored/shoe5.jpg',
   },
+  {
+    name: 'Shoe 6',
+    uncolored: '/images/uncolored/shoe6.jpg',
+    colored: '/images/colored/shoe6.jpg',
+  },
 ];
 
 export default function HomePage() {
@@ -62,6 +67,7 @@ export default function HomePage() {
       setShoeImages((prev) => [...prev, newImage]);
       setImageUrl(newImage.uncolored);
       setColoredImageUrl(null);
+      setSidebarOpen(false); // Close sidebar on image upload
     };
     reader.readAsDataURL(file);
   };
@@ -131,6 +137,7 @@ export default function HomePage() {
                         onClick={() => {
                           setImageUrl(shoe.uncolored);
                           setColoredImageUrl(shoe.colored || null);
+                          setSidebarOpen(false); // Close sidebar on image selection
                         }}
                       />
                       <span className='text-sm text-gray-200 text-center'>
@@ -160,7 +167,7 @@ export default function HomePage() {
             </aside>
 
             {/* Main Content */}
-            <section className='flex-1 px-6'>
+            <section className='flex-1 px-3'>
               {imageUrl && (
                 <div className='flex justify-center items-start gap-4 relative w-full'>
                   {/* 🎨 Color Palette - vertical */}
