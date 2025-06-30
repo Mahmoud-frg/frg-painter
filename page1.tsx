@@ -233,7 +233,7 @@ export default function HomePage() {
                         alt='Colored Reference'
                         className={`${
                           isFullscreen
-                            ? 'absolute -top-6 -right-10 w-40 h-40'
+                            ? 'absolute top-4 right-4 w-40 h-40'
                             : 'absolute -top-8 -right-8 w-40 h-40'
                         } object-contain bg-white rounded-xl shadow-md z-20 border border-white`}
                       />

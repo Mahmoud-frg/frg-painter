@@ -6,12 +6,14 @@ interface Props {
   imageUrl: string;
   selectedColor: string;
   brushImageUrl: string;
+  isFullscreen: boolean;
 }
 
 export default function LineDrawingCanvas({
   imageUrl,
   selectedColor,
   brushImageUrl,
+  isFullscreen,
 }: Props) {
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
   const baseCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -25,14 +27,17 @@ export default function LineDrawingCanvas({
   const historyRef = useRef<ImageData[]>([]); // Store canvas state history
   const historyIndexRef = useRef<number>(-1); // Track current history position
   const [historyVersion, setHistoryVersion] = useState(0); // Track history changes
-
+  const [isLocalFullscreen, setIsLocalFullscreen] = useState(false); // Track fullscreen state
+  const [zoomLevel, setZoomLevel] = useState(1); // Track zoom level (1 = 100%)
   const [isDrawing, setIsDrawing] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
   const [isFilling, setIsFilling] = useState(false);
   const [brushSize, setBrushSize] = useState(15);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [scaledHeight, setScaledHeight] = useState(400);
+
+  const CANVAS_WIDTH = 1340;
+  const CANVAS_HEIGHT = 750;
 
   // Save canvas state to history
   const saveCanvasState = () => {
@@ -77,6 +82,48 @@ export default function LineDrawingCanvas({
     setHistoryVersion((prev) => prev + 1); // Update to reflect Undo
   };
 
+  // Toggle fullscreen mode
+  const handleFullscreen = async () => {
+    const container = document.getElementById('canvas-container');
+    if (!container) return;
+
+    if (!isLocalFullscreen) {
+      try {
+        await container.requestFullscreen();
+        setIsLocalFullscreen(true);
+      } catch (err) {
+        console.error('Failed to enter fullscreen:', err);
+      }
+    } else {
+      try {
+        await document.exitFullscreen();
+        setIsLocalFullscreen(false);
+      } catch (err) {
+        console.error('Failed to exit fullscreen:', err);
+      }
+    }
+  };
+
+  // Handle zoom in/out
+  const handleZoom = (direction: 'in' | 'out') => {
+    setZoomLevel((prev) => {
+      const newZoom = direction === 'in' ? prev + 0.25 : prev - 0.25;
+      return Math.max(0.5, Math.min(2, newZoom)); // Limit zoom between 50% and 200%
+    });
+  };
+
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsLocalFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   useEffect(() => {
     brushSoundRef.current = new Audio('/sounds/brush.mp3');
     eraserSoundRef.current = new Audio('/sounds/eraser.mp3');
@@ -92,6 +139,7 @@ export default function LineDrawingCanvas({
     }
   }, []);
 
+  // Handle image loading and initial canvas setup
   useEffect(() => {
     if (!imageUrl) return;
 
@@ -100,42 +148,48 @@ export default function LineDrawingCanvas({
     baseImage.src = imageUrl;
     baseImage.onload = () => {
       baseImageRef.current = baseImage;
-      const aspectRatio = baseImage.height / baseImage.width;
       setImageSize({ width: baseImage.width, height: baseImage.height });
-      setScaledHeight((containerRef.current?.offsetWidth || 600) * aspectRatio);
-      setImageLoaded(true);
 
       const baseCanvas = baseCanvasRef.current;
       const drawCanvas = drawCanvasRef.current;
-      if (baseCanvas && drawCanvas && containerRef.current) {
-        const width = containerRef.current.offsetWidth;
-        const height = width * aspectRatio;
-        baseCanvas.width = width;
-        baseCanvas.height = height;
-        drawCanvas.width = width;
-        drawCanvas.height = height;
+      if (!baseCanvas || !drawCanvas) return;
 
-        const baseCtx = baseCanvas.getContext('2d');
-        if (baseCtx) {
-          baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
-          baseCtx.drawImage(
-            baseImage,
-            0,
-            0,
-            baseCanvas.width,
-            baseCanvas.height
-          );
-        }
+      // Fixed canvas size
+      baseCanvas.width = CANVAS_WIDTH;
+      baseCanvas.height = CANVAS_HEIGHT;
+      drawCanvas.width = CANVAS_WIDTH;
+      drawCanvas.height = CANVAS_HEIGHT;
 
-        const drawCtx = drawCanvas.getContext('2d');
-        if (drawCtx) {
-          drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-          // Initialize history with empty canvas
-          historyRef.current = [];
-          historyIndexRef.current = -1;
-          saveCanvasState();
-        }
+      const baseCtx = baseCanvas.getContext('2d');
+      const drawCtx = drawCanvas.getContext('2d');
+      if (!baseCtx || !drawCtx) return;
+
+      // Clear with white background (important for contain behavior)
+      baseCtx.fillStyle = 'white';
+      baseCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      const imgAspect = baseImage.width / baseImage.height;
+      const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
+
+      let drawWidth = CANVAS_WIDTH;
+      let drawHeight = CANVAS_HEIGHT;
+      if (imgAspect > canvasAspect) {
+        drawWidth = CANVAS_WIDTH;
+        drawHeight = CANVAS_WIDTH / imgAspect;
+      } else {
+        drawHeight = CANVAS_HEIGHT;
+        drawWidth = CANVAS_HEIGHT * imgAspect;
       }
+      const offsetX = (CANVAS_WIDTH - drawWidth) / 2;
+      const offsetY = (CANVAS_HEIGHT - drawHeight) / 2;
+
+      baseCtx.drawImage(baseImage, offsetX, offsetY, drawWidth, drawHeight);
+
+      drawCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      historyRef.current = [];
+      historyIndexRef.current = -1;
+      saveCanvasState();
+      setImageLoaded(true);
     };
 
     const brush = new Image();
@@ -144,6 +198,70 @@ export default function LineDrawingCanvas({
       brushRef.current = brush;
     };
   }, [imageUrl, brushImageUrl]);
+
+  // Handle canvas resize and state preservation on fullscreen change
+  useEffect(() => {
+    if (!imageLoaded) return;
+
+    const baseCanvas = baseCanvasRef.current;
+    const drawCanvas = drawCanvasRef.current;
+    const baseImage = baseImageRef.current;
+    if (!baseCanvas || !drawCanvas || !baseImage) return;
+
+    const baseCtx = baseCanvas.getContext('2d');
+    const drawCtx = drawCanvas.getContext('2d');
+    if (!baseCtx || !drawCtx) return;
+
+    // Save current drawing state
+    const currentDrawState =
+      historyRef.current[historyIndexRef.current] ||
+      drawCtx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = CANVAS_WIDTH;
+    tempCanvas.height = CANVAS_HEIGHT;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) return;
+    tempCtx.putImageData(currentDrawState, 0, 0);
+
+    // Re-apply canvas dimensions (same size)
+    baseCanvas.width = CANVAS_WIDTH;
+    baseCanvas.height = CANVAS_HEIGHT;
+    drawCanvas.width = CANVAS_WIDTH;
+    drawCanvas.height = CANVAS_HEIGHT;
+
+    // Redraw image (same aspect ratio handling as above)
+    baseCtx.fillStyle = 'white';
+    baseCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const imgAspect = baseImage.width / baseImage.height;
+    const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
+
+    let drawWidth = CANVAS_WIDTH;
+    let drawHeight = CANVAS_HEIGHT;
+    if (imgAspect > canvasAspect) {
+      drawWidth = CANVAS_WIDTH;
+      drawHeight = CANVAS_WIDTH / imgAspect;
+    } else {
+      drawHeight = CANVAS_HEIGHT;
+      drawWidth = CANVAS_HEIGHT * imgAspect;
+    }
+    const offsetX = (CANVAS_WIDTH - drawWidth) / 2;
+    const offsetY = (CANVAS_HEIGHT - drawHeight) / 2;
+
+    baseCtx.drawImage(baseImage, offsetX, offsetY, drawWidth, drawHeight);
+
+    drawCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    drawCtx.drawImage(tempCanvas, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Update history
+    const scaledImageData = drawCtx.getImageData(
+      0,
+      0,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT
+    );
+    historyRef.current[historyIndexRef.current] = scaledImageData;
+  }, [isLocalFullscreen, imageLoaded]);
 
   const handleReset = () => {
     const drawCanvas = drawCanvasRef.current;
@@ -161,18 +279,27 @@ export default function LineDrawingCanvas({
   const getCanvasPos = (e: MouseEvent | TouchEvent) => {
     const canvas = drawCanvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
+
     const rect = canvas.getBoundingClientRect();
+    let clientX = 0,
+      clientY = 0;
+
     if ('touches' in e) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top,
-      };
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
     } else {
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
+      clientX = e.clientX;
+      clientY = e.clientY;
     }
+
+    // 🔥 Adjust for canvas resolution vs displayed size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
   };
 
   const getPixelColor = (
@@ -471,24 +598,94 @@ export default function LineDrawingCanvas({
     };
   }, [isDrawing, selectedColor, isErasing, brushSize, isFilling]);
 
+  useEffect(() => {
+    if (!imageLoaded) return;
+
+    const handleResize = () => {
+      setImageSize((prev) => ({ ...prev }));
+    };
+
+    const debounced = setTimeout(handleResize, 100);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(debounced);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isLocalFullscreen, imageLoaded]);
+
+  // Add keyboard shortcuts (e.g., B = brush, E = eraser, F = fill, Ctrl+Z = undo, Ctrl+S = save)
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'z') handleUndo();
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        handleDownload();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
   return (
-    <div className='flex flex-col items-center gap-4'>
+    <div
+      id='canvas-container'
+      className={`flex ${
+        isFullscreen ? 'flex-col items-center h-full' : 'flex-col items-center'
+      } gap-4`}
+    >
+      {/* Canvas */}
       <div
         ref={containerRef}
-        className='relative shadow-lg self-center rounded-2xl overflow-hidden w-[90vw] max-w-[800px]'
-        style={{ height: scaledHeight }}
+        className='relative shadow-lg rounded-2xl overflow-hidden bg-white'
+        style={{
+          aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`,
+          width: isFullscreen ? 'calc(100vw - 100px)' : '90vw',
+          maxWidth: isFullscreen ? '1340px' : '750px',
+          transform: `scale(${zoomLevel})`,
+          transformOrigin: 'top center',
+          transition: 'transform 0.2s ease',
+        }}
       >
         <canvas
           ref={baseCanvasRef}
-          className='absolute top-0 left-0 w-full h-full'
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          className='absolute top-0 left-0 w-full h-full z-0 pointer-events-none'
         />
         <canvas
           ref={drawCanvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
           className='absolute top-0 left-0 w-full h-full z-10 touch-none'
         />
       </div>
 
-      <div className='flex gap-4 flex-wrap justify-center'>
+      {/* Controls (Top in Fullscreen) */}
+      <div
+        className={` ${
+          isFullscreen
+            ? 'flex flex-col gap-4 absolute items-center top-35 -right-10'
+            : ' flex flex-row gap-4 z-20'
+        }`}
+      >
+        <button
+          onClick={() => handleZoom('in')}
+          className={`px-4 py-2 bg-indigo-600 rounded disabled:bg-gray-700 ${
+            isFullscreen ? 'hidden' : 'hidden'
+          }`}
+          disabled={zoomLevel >= 2}
+        >
+          {isFullscreen ? '🔎+' : '🔎 Zoom In'}
+        </button>
+        <button
+          onClick={() => handleZoom('out')}
+          className={`px-4 py-2 bg-indigo-600 rounded disabled:bg-gray-700 ${
+            isFullscreen ? 'hidden' : 'hidden'
+          }`}
+          disabled={zoomLevel <= 0.5}
+        >
+          {isFullscreen ? '🔍-' : '🔍 Zoom Out'}
+        </button>
         <button
           onClick={() => {
             setIsErasing(false);
@@ -496,9 +693,9 @@ export default function LineDrawingCanvas({
           }}
           className={`px-4 py-2 rounded ${
             !isErasing && !isFilling ? 'bg-blue-600' : 'bg-gray-700'
-          }`}
+          } ${isFullscreen ? '' : ''}`}
         >
-          🎨 Brush
+          {isFullscreen ? '🎨' : '🎨 Brush'}
         </button>
         <button
           onClick={() => {
@@ -507,9 +704,9 @@ export default function LineDrawingCanvas({
           }}
           className={`px-4 py-2 rounded ${
             isErasing ? 'bg-red-600' : 'bg-gray-700'
-          }`}
+          } ${isFullscreen ? '' : ''}`}
         >
-          🧽 Eraser
+          {isFullscreen ? '🧽' : '🧽 Eraser'}
         </button>
         <button
           onClick={() => {
@@ -518,47 +715,88 @@ export default function LineDrawingCanvas({
           }}
           className={`px-4 py-2 rounded ${
             isFilling ? 'bg-yellow-600' : 'bg-gray-700'
-          }`}
+          } ${isFullscreen ? '' : ''}`}
         >
-          🪣 Fill
+          {isFullscreen ? '🪣' : '🪣 Fill'}
         </button>
         <button
           onClick={handleUndo}
-          className='px-4 py-2 bg-purple-600 rounded disabled:bg-gray-700'
+          className={`px-4 py-2 bg-purple-600 rounded disabled:bg-gray-700 ${
+            isFullscreen ? '' : ''
+          }`}
           disabled={historyIndexRef.current <= 0}
         >
-          ⬅️ Undo
+          {isFullscreen ? '⬅️' : '⬅️ Undo'}
         </button>
         <button
           onClick={handleReset}
-          className='px-4 py-2 bg-yellow-600 rounded'
+          className={`px-4 py-2 bg-yellow-600 rounded ${
+            isFullscreen ? '' : ''
+          }`}
         >
-          ♻️ Reset
+          {isFullscreen ? '♻️' : '♻️ Reset'}
         </button>
         <button
           onClick={handleDownload}
-          className='px-4 py-2 bg-green-600 rounded'
+          className={`px-4 py-2 bg-green-600 rounded ${isFullscreen ? '' : ''}`}
         >
-          💾 Save
+          {isFullscreen ? '💾' : '💾 Save'}
+        </button>
+
+        <button
+          onClick={handleFullscreen}
+          className={`px-4 py-2 bg-teal-600 rounded ${isFullscreen ? '' : ''}`}
+        >
+          {isLocalFullscreen ? '🖥️' : '🖥️ Fullscreen'}
         </button>
       </div>
 
-      <div className='w-full max-w-sm mt-2'>
-        <label
-          htmlFor='brushSize'
-          className='text-sm block text-white mb-1'
+      {/* sliders */}
+      <div
+        className={`w-full ${
+          isFullscreen ? 'flex flex-row items-center justify-between z-20' : ''
+        }`}
+      >
+        <div
+          className={`w-full max-w-xl flex flex-row gap-4 ${
+            isFullscreen ? 'z-20' : ''
+          }`}
         >
-          Brush Size: {brushSize}px
-        </label>
-        <input
-          id='brushSize'
-          type='range'
-          min={10}
-          max={50}
-          value={brushSize}
-          onChange={(e) => setBrushSize(parseInt(e.target.value))}
-          className='w-full'
-        />
+          <label
+            htmlFor='brushSize'
+            className='text-sm block text-white mb-1'
+          >
+            Brush Size: {brushSize}px
+          </label>
+          <input
+            id='brushSize'
+            type='range'
+            min={10}
+            max={50}
+            value={brushSize}
+            onChange={(e) => setBrushSize(parseInt(e.target.value))}
+            className='w-96'
+          />
+        </div>
+
+        <div className={`w-full max-w-sm hidden ${isFullscreen ? 'z-20' : ''}`}>
+          <label
+            htmlFor='zoomLevel'
+            className='text-sm block text-white'
+          >
+            Zoom: {(zoomLevel * 100).toFixed(0)}%
+          </label>
+          <input
+            id='zoomLevel'
+            type='range'
+            min={0.5}
+            max={2}
+            step={0.1}
+            value={zoomLevel}
+            onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
+            className='w-full'
+          />
+        </div>
       </div>
     </div>
   );
