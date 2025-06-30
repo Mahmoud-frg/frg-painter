@@ -7,7 +7,6 @@ const baseConfig: NextConfig = {
   swcMinify: true,
 };
 
-// Export a function-based config (required for Next.js 13+ with plugins like next-pwa)
 const config = (
   _phase: string,
   { defaultConfig }: { defaultConfig: NextConfig }
@@ -20,6 +19,11 @@ const config = (
       register: true,
       skipWaiting: true,
       disable: process.env.NODE_ENV === 'development',
+
+      // ✅ Add this section
+      fallbacks: {
+        document: '/offline.html',
+      },
     },
   });
 };
