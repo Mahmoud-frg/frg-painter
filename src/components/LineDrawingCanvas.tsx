@@ -695,7 +695,7 @@ export default function LineDrawingCanvas({
             !isErasing && !isFilling ? 'bg-blue-600' : 'bg-gray-700'
           } ${isFullscreen ? '' : ''}`}
         >
-          {isFullscreen ? '🎨' : '🎨 Brush'}
+          {isFullscreen ? '🖍️' : '🖍️ Brush'}
         </button>
         <button
           onClick={() => {
@@ -706,7 +706,7 @@ export default function LineDrawingCanvas({
             isErasing ? 'bg-red-600' : 'bg-gray-700'
           } ${isFullscreen ? '' : ''}`}
         >
-          {isFullscreen ? '🧽' : '🧽 Eraser'}
+          {isFullscreen ? '🩹' : '🩹 Eraser'}
         </button>
         <button
           onClick={() => {
@@ -726,7 +726,7 @@ export default function LineDrawingCanvas({
           }`}
           disabled={historyIndexRef.current <= 0}
         >
-          {isFullscreen ? '⬅️' : '⬅️ Undo'}
+          {isFullscreen ? '🔄️' : '🔄️ Undo'}
         </button>
         <button
           onClick={handleReset}
