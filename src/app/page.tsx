@@ -12,34 +12,44 @@ type ShoeImage = {
 
 const initialShoeImages: ShoeImage[] = [
   {
-    name: 'Shoe 1',
-    uncolored: '/images/uncolored/shoe1.jpg',
-    colored: '/images/colored/shoe1.jpg',
+    name: 'girls 1',
+    uncolored: '/images/uncolored/girls1-un.png',
+    colored: '/images/colored/girls1.png',
   },
   {
-    name: 'Shoe 2',
-    uncolored: '/images/uncolored/shoe2.jpg',
-    colored: '/images/colored/shoe2.jpg',
+    name: 'girls 2',
+    uncolored: '/images/uncolored/girls2-un.png',
+    colored: '/images/colored/girls2.png',
   },
   {
-    name: 'Shoe 3',
-    uncolored: '/images/uncolored/shoe3.jpg',
-    colored: '/images/colored/shoe3.jpg',
+    name: 'girls 3',
+    uncolored: '/images/uncolored/girls3-un.png',
+    colored: '/images/colored/girls3.png',
   },
   {
-    name: 'Shoe 4',
-    uncolored: '/images/uncolored/shoe4.jpg',
-    colored: '/images/colored/shoe4.jpg',
+    name: 'girls 4',
+    uncolored: '/images/uncolored/girls4-un.png',
+    colored: '/images/colored/girls4.png',
   },
   {
-    name: 'Shoe 5',
-    uncolored: '/images/uncolored/shoe5.jpg',
-    colored: '/images/colored/shoe5.jpg',
+    name: 'boys 1',
+    uncolored: '/images/uncolored/boys1-un.png',
+    colored: '/images/colored/boys1.png',
   },
   {
-    name: 'Shoe 6',
-    uncolored: '/images/uncolored/shoe6.jpg',
-    colored: '/images/colored/shoe6.jpg',
+    name: 'boys 2',
+    uncolored: '/images/uncolored/boys2-un.png',
+    colored: '/images/colored/boys2.png',
+  },
+  {
+    name: 'boys 3',
+    uncolored: '/images/uncolored/boys3-un.png',
+    colored: '/images/colored/boys3.png',
+  },
+  {
+    name: 'boys 4',
+    uncolored: '/images/uncolored/boys4-un.png',
+    colored: '/images/colored/boys4.png',
   },
 ];
 
