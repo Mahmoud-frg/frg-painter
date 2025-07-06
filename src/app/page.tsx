@@ -143,7 +143,7 @@ export default function HomePage() {
               } overflow-hidden border-r border-gray-700`}
             >
               {sidebarOpen && (
-                <div className='flex flex-col gap-4 px-2 pb-4 max-h-[70vh] overflow-y-auto'>
+                <div className='flex flex-col gap-4 px-2 pb-4 max-h-[75vh] overflow-y-auto'>
                   {shoeImages.map((shoe) => (
                     <div
                       key={shoe.name}
