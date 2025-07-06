@@ -144,7 +144,7 @@ export default function HomePage() {
 
             {/* Sidebar */}
             <aside
-              className={`transition-all duration-300  ${
+              className={`transition-all duration-300 bg-[#05101b6c] rounded-3xl py-2 ${
                 sidebarOpen ? 'w-52 pr-4' : 'w-0 pr-0'
               } overflow-hidden border-r border-gray-700 max-h-[80vh]`}
             >
@@ -176,10 +176,10 @@ export default function HomePage() {
                   ))}
 
                   {/* Upload Button */}
-                  <div className='mt-2'>
+                  <div className='self-center'>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className='w-full px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 rounded'
+                      className='w-auto px-3 py-2 mb-4 text-sm bg-blue-600 hover:bg-blue-700 rounded'
                     >
                       ➕ Upload Image
                     </button>
@@ -233,7 +233,7 @@ export default function HomePage() {
                         onClick={() => setSelectedColor(color)}
                         className={`w-8 h-8 rounded-full border-2 ${
                           selectedColor === color
-                            ? 'border-white scale-110'
+                            ? 'border-[#123458] scale-120'
                             : 'border-gray-400'
                         }`}
                         style={{ backgroundColor: color }}
