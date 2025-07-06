@@ -96,54 +96,60 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className='min-h-screen p-6 bg-gray-600 text-white flex flex-col'>
-      {/* Header */}
-      <div className='flex items-center gap-4 mb-2 self-center'>
-        <div className='p-2 w-auto h-auto rounded-full bg-white'>
+    <main
+      className='min-h-screen px-6 bg-gray-400 text-[#ffffff] flex flex-col'
+      style={{
+        backgroundImage: "url('/images/bg.jpg')",
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover', // or '100% 100%'
+        backgroundPosition: 'right bottom',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      <div className='relative w-full h-full'>
+        {/* Header */}
+        <div className='flex justify-center items-center py-4'>
           <img
-            src='/images/frg-bg-white.png'
-            alt='FRG'
-            className='w-8 h-8'
+            src='/images/skx-kids.png'
+            alt='skechers kids'
+            className='w-40 h-25'
           />
         </div>
-        <h1 className='text-2xl font-bold'>FRG Painter</h1>
-      </div>
 
-      <div className='relative w-full h-full'>
         {/* 🔽 Background image */}
-        <div
+        {/* <div
           className='absolute right-0 top-0 h-full z-0'
           style={{
             width: '500px',
-            backgroundImage: "url('/images/drawing2.png')",
+            backgroundImage: "url('/images/bg.jpg')",
             backgroundRepeat: 'no-repeat',
             backgroundSize: 'contain',
             backgroundPosition: 'right bottom',
           }}
-        />
+        /> */}
 
         {/* 🔼 Foreground content */}
-        <div className='relative z-10'>
-          {/* Toggle Sidebar Button */}
-          <div className='flex justify-center absolute -top-15 -left-10'>
-            <button
-              onClick={() => setSidebarOpen((prev) => !prev)}
-              className='absolute w-12 h-12 left-8 z-20 bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-2xl shadow-md'
-              aria-label='Toggle Sidebar'
-            >
-              {sidebarOpen ? '📂' : '📁'}
-            </button>
-          </div>
+        <div className='relative z-10 h-full'>
+          <div className='flex flex-1 w-full h-full'>
+            {/* Toggle Sidebar Button */}
+            <div className='flex justify-center'>
+              <button
+                onClick={() => setSidebarOpen((prev) => !prev)}
+                className='absolute w-12 h-12 -top-20 left-10 z-20 bg-gray-800 hover:bg-gray-700 text-[#27548A] p-2 rounded-2xl shadow-md'
+                aria-label='Toggle Sidebar'
+              >
+                {sidebarOpen ? '📂' : '📁'}
+              </button>
+            </div>
 
-          <div className='flex flex-1 w-full'>
             {/* Sidebar */}
             <aside
-              className={`transition-all duration-300 ${
+              className={`transition-all duration-300  ${
                 sidebarOpen ? 'w-52 pr-4' : 'w-0 pr-0'
-              } overflow-hidden border-r border-gray-700`}
+              } overflow-hidden border-r border-gray-700 max-h-[80vh]`}
             >
               {sidebarOpen && (
-                <div className='flex flex-col gap-4 px-2 pb-4 max-h-[75vh] overflow-y-auto'>
+                <div className='flex flex-col gap-4 max-h-[80vh] overflow-y-auto'>
                   {shoeImages.map((shoe) => (
                     <div
                       key={shoe.name}
@@ -154,8 +160,8 @@ export default function HomePage() {
                         alt={shoe.name}
                         className={`w-24 h-24 object-contain bg-white p-2 rounded-lg cursor-pointer border-2 transition-transform ${
                           imageUrl === shoe.uncolored
-                            ? 'border-white scale-105'
-                            : 'border-gray-500'
+                            ? 'border-gray-500'
+                            : 'border-white scale-105'
                         }`}
                         onClick={() => {
                           setImageUrl(shoe.uncolored);
@@ -163,7 +169,7 @@ export default function HomePage() {
                           setSidebarOpen(false); // Close sidebar on image selection
                         }}
                       />
-                      <span className='text-sm text-gray-200 text-center'>
+                      <span className='text-sm text-[#123458] text-center'>
                         {shoe.name}
                       </span>
                     </div>
@@ -254,7 +260,7 @@ export default function HomePage() {
                         isFullscreen ? 'hidden' : ''
                       }`}
                     >
-                      <span className='text-xl text-gray-300'>Selected</span>
+                      <span className='text-xl text-[#123458]'>Selected</span>
                       <span
                         className='w-8 h-8 inline-block rounded-full border border-white'
                         style={{ backgroundColor: selectedColor }}

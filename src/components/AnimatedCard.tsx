@@ -24,13 +24,15 @@ const AnimatedCard = () => {
       {/* Animated Dot */}
       <motion.div
         animate={controls}
-        className='w-2 h-2 bg-[#ff0000] rounded-full shadow-lg absolute z-20'
+        className='w-2 h-2 bg-[#DDA853] rounded-full shadow-lg absolute z-20'
       />
 
       {/* Card */}
       <div className='flex flex-col items-center justify-center h-full text-center p-6'>
-        <p className='text-sm text-secondary font-medium'>We care about you</p>
-        <p className='text-sm text-slate-400 font-medium'>
+        <p className='text-3xl font-bold text-[#123458]'>
+          #SKECHERSKIDSXKidzania
+        </p>
+        <p className='text-xs text-slate-700 font-medium'>
           Copyright &copy; 2025 FRG | IT department - App version 1.1
         </p>
       </div>

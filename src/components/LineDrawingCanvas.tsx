@@ -764,7 +764,9 @@ export default function LineDrawingCanvas({
         >
           <label
             htmlFor='brushSize'
-            className='text-sm block text-white mb-1'
+            className={`text-sm block mb-1 ${
+              isLocalFullscreen ? 'text-[#ffffff]' : 'text-[#123458]'
+            }`}
           >
             Brush Size: {brushSize}px
           </label>
