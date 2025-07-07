@@ -1,6 +1,6 @@
 {
-  "name": "FRG Painter App",
-  "short_name": "Painter",
+  "name": "FRG Coloring App",
+  "short_name": "Coloring",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
