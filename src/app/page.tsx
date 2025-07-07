@@ -216,11 +216,14 @@ export default function HomePage() {
                   >
                     {[
                       '#E52020',
-                      '#3ABEF9',
-                      '#00cc66',
+                      '#16610E',
+                      '#B6FFA1',
                       '#7F8CAA',
                       '#F564A9',
+                      '#FF90BB',
                       '#003092',
+                      '#00CAFF',
+                      '#BBFBFF',
                       '#FEEC37',
                       '#3B060A',
                       '#F26B0F',
